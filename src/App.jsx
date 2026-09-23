@@ -1,15 +1,11 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import "./App.css";
 
 function App() {
-  const [platformName, setPlatformName] = useState("");
+  const [platformName, setPlatformName] = useState("Java Enterprise Suite");
   const [companyName, setCompanyName] = useState("Oracle Corporation");
   const [tagline, setTagline] = useState(
     "Empowering Enterprise Intelligence"
-  );
-
-  const [welcomeMessage, setWelcomeMessage] = useState(
-    "Welcome to Java Enterprise Suite.\nPlease authenticate to continue."
   );
 
   const [footerText, setFooterText] = useState(
@@ -20,31 +16,85 @@ function App() {
     "© 2024 platform branding. All rights reserved."
   );
 
+  const [welcomeMessage, setWelcomeMessage] = useState(
+    "Welcome to Java Enterprise Suite.\nPlease authenticate to continue."
+  );
+
   const [primaryColor, setPrimaryColor] = useState("#1976D2");
   const [secondaryColor, setSecondaryColor] = useState("#FFFFFF");
-  const [accentColor, setAccentColor] = useState("#4CAF50");
+  const [accentColor, setAccentColor] = useState("#16A085");
 
   const [theme, setTheme] = useState("light");
-  const [strongPassword, setStrongPassword] = useState(true);
-  const [twoFactor, setTwoFactor] = useState(false);
 
-  const [backgroundImage, setBackgroundImage] = useState(null);
-  const [logoImage, setLogoImage] = useState(null);
-  const [faviconImage, setFaviconImage] = useState(null);
-  const [emailLogo, setEmailLogo] = useState(null);
+  const [strongPassword, setStrongPassword] = useState(true);
+  const [twoFactor, setTwoFactor] = useState(true);
+
+  const [logoImage, setLogoImage] = useState("");
+  const [faviconImage, setFaviconImage] = useState("");
+  const [emailLogo, setEmailLogo] = useState("");
+  const [backgroundImage, setBackgroundImage] = useState("");
+
+  const [showFaviconModal, setShowFaviconModal] = useState(false);
+  const [faviconFile, setFaviconFile] = useState(null);
+  const [faviconPreview, setFaviconPreview] = useState("");
+
+  const [showLogoModal, setShowLogoModal] = useState(false);
 
   const uploadImage = (event, setter) => {
-    const file = event.target.files[0];
+    const file = event.target.files?.[0];
 
     if (!file) return;
 
-    if (file.size > 5 * 1024 * 1024) {
-      alert("Image size must be below 5MB.");
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setter(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleFaviconFile = (file) => {
+    if (!file) return;
+
+    const validTypes = [
+      "image/png",
+      "image/x-icon",
+      "image/vnd.microsoft.icon",
+    ];
+
+    const extension = file.name.toLowerCase().split(".").pop();
+
+    if (!validTypes.includes(file.type) && extension !== "ico") {
+      alert("Please upload PNG or ICO file only.");
       return;
     }
 
-    const url = URL.createObjectURL(file);
-    setter(url);
+    setFaviconFile(file);
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      setFaviconPreview(reader.result);
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const handleFaviconUpload = () => {
+    if (!faviconFile) {
+      alert("Please select a favicon first.");
+      return;
+    }
+
+    setFaviconImage(faviconPreview);
+    setShowFaviconModal(false);
+  };
+
+  const closeFaviconModal = () => {
+    setFaviconFile(null);
+    setFaviconPreview("");
+    setShowFaviconModal(false);
   };
 
   const saveChanges = () => {
@@ -53,214 +103,250 @@ function App() {
       return;
     }
 
-    if (tagline.length > 120) {
-      alert("Tagline must be fewer than 120 characters");
-      return;
-    }
-
     const data = {
       platformName,
       companyName,
       tagline,
-      welcomeMessage,
       footerText,
       copyrightText,
+      welcomeMessage,
       primaryColor,
       secondaryColor,
       accentColor,
       theme,
       strongPassword,
       twoFactor,
+      logoImage,
+      faviconImage,
+      emailLogo,
+      backgroundImage,
     };
 
     localStorage.setItem("platformBranding", JSON.stringify(data));
 
-    alert("Changes saved successfully!");
+    alert("Platform branding saved successfully!");
   };
 
   const cancelChanges = () => {
-    setPlatformName("");
-    setCompanyName("Oracle Corporation");
-    setTagline("Empowering Enterprise Intelligence");
-    setWelcomeMessage(
-      "Welcome to Java Enterprise Suite.\nPlease authenticate to continue."
-    );
-    setFooterText("System Maintained by IT Dept.");
-    setCopyrightText("© 2024 platform branding. All rights reserved.");
-    setPrimaryColor("#1976D2");
-    setSecondaryColor("#FFFFFF");
-    setAccentColor("#4CAF50");
-    setTheme("light");
-    setStrongPassword(true);
-    setTwoFactor(false);
+    const saved = localStorage.getItem("platformBranding");
+
+    if (saved) {
+      const data = JSON.parse(saved);
+
+      setPlatformName(data.platformName || "");
+      setCompanyName(data.companyName || "");
+      setTagline(data.tagline || "");
+      setFooterText(data.footerText || "");
+      setCopyrightText(data.copyrightText || "");
+      setWelcomeMessage(data.welcomeMessage || "");
+      setPrimaryColor(data.primaryColor || "#1976D2");
+      setSecondaryColor(data.secondaryColor || "#FFFFFF");
+      setAccentColor(data.accentColor || "#16A085");
+      setTheme(data.theme || "light");
+      setStrongPassword(
+        data.strongPassword !== undefined ? data.strongPassword : true
+      );
+      setTwoFactor(
+        data.twoFactor !== undefined ? data.twoFactor : true
+      );
+      setLogoImage(data.logoImage || "");
+      setFaviconImage(data.faviconImage || "");
+      setEmailLogo(data.emailLogo || "");
+      setBackgroundImage(data.backgroundImage || "");
+    } else {
+      setPlatformName("Java Enterprise Suite");
+      setCompanyName("Oracle Corporation");
+      setTagline("Empowering Enterprise Intelligence");
+      setFooterText("System Maintained by IT Dept.");
+      setCopyrightText(
+        "© 2024 platform branding. All rights reserved."
+      );
+      setWelcomeMessage(
+        "Welcome to Java Enterprise Suite.\nPlease authenticate to continue."
+      );
+      setPrimaryColor("#1976D2");
+      setSecondaryColor("#FFFFFF");
+      setAccentColor("#16A085");
+      setTheme("light");
+      setStrongPassword(true);
+      setTwoFactor(true);
+      setLogoImage("");
+      setFaviconImage("");
+      setEmailLogo("");
+      setBackgroundImage("");
+    }
   };
 
   const previewChanges = () => {
     alert(
-      `Platform Preview\n\n${
-        platformName || "Platform Name"
-      }\n${tagline}`
+      `Platform Preview\n\n${platformName}\n${tagline}\n\nTheme: ${theme}`
     );
   };
 
   return (
-    <div className={`app ${theme}`}>
-
+    <div className={`app ${theme === "dark" ? "dark-theme" : ""}`}>
       {/* SIDEBAR */}
       <aside className="sidebar">
-
-        <div className="stackly-logo">
-          <div className="stackly-symbol">S</div>
+        <div className="brand">
+          <div className="brand-logo">⚡</div>
 
           <div>
-            <h2>STACKLY</h2>
-            <span>PLATFORM ADMINISTRATION</span>
+            <div className="brand-name">STACKLY</div>
           </div>
         </div>
 
-        <div className="menu-section">
-          <p>SUPER ADMIN MANAGEMENT</p>
+        <div className="sidebar-section-title">
+          PLATFORM ADMINISTRATION
+        </div>
 
-          <div className="menu-item">
+        <div className="sidebar-section-title second-title">
+          SUPER ADMIN MANAGEMENT
+        </div>
+
+        <nav className="sidebar-nav">
+          <div className="nav-item">
             <span>▦</span>
             Super Admin Dashboard
           </div>
 
-          <div className="menu-item">
+          <div className="nav-item">
             <span>◉</span>
             Platform Administration
           </div>
 
-          <div className="menu-item">
+          <div className="nav-item">
             <span>◉</span>
             Global Dashboard
           </div>
 
-          <div className="menu-item">
-            <span>⚙</span>
+          <div className="nav-item">
+            <span>◉</span>
             Platform Configuration
           </div>
 
-          <div className="menu-item active">
-            <span>▦</span>
+          <div className="nav-item active">
+            <span>▣</span>
             Platform Branding
           </div>
 
-          <div className="menu-item">
-            <span>▤</span>
+          <div className="nav-item">
+            <span>◈</span>
             Feature Management
           </div>
 
-          <div className="menu-item">
-            <span>▣</span>
+          <div className="nav-item">
+            <span>▤</span>
             License Management
           </div>
 
-          <div className="menu-item">
-            <span>☷</span>
+          <div className="nav-item">
+            <span>⚙</span>
             Settings
           </div>
+        </nav>
+
+        <div className="sidebar-section-title organization-title">
+          ORGANIZATION
         </div>
 
-        <div className="menu-section organization">
-          <p>ORGANIZATION</p>
-
-          <div className="menu-item">
+        <nav className="sidebar-nav">
+          <div className="nav-item">
             <span>▣</span>
             Company Setup
           </div>
 
-          <div className="menu-item">
-            <span>♙</span>
+          <div className="nav-item">
+            <span>♟</span>
             User Management
           </div>
-        </div>
+        </nav>
 
         <div className="sidebar-bottom">
-
-          <div className="language">
-            <span>◎</span>
+          <div className="language-row">
+            <span>◉</span>
             <span>Language</span>
-            <span className="english">English⌄</span>
+            <span className="language-value">English⌄</span>
           </div>
 
-          <div className="logout">
+          <div className="logout-row">
             <span>↪</span>
-            Log out
+            <span>Log out</span>
           </div>
 
-          <div className="admin-profile">
-            <div className="admin-avatar">R</div>
+          <div className="sidebar-user">
+            <div className="user-avatar small-avatar">R</div>
 
             <div>
-              <strong>Renu Kapoor</strong>
-              <small>Super Admin</small>
+              <div className="sidebar-user-name">Renu Kapoor</div>
+              <div className="sidebar-user-role">Super Admin</div>
             </div>
           </div>
-
         </div>
       </aside>
 
       {/* MAIN */}
-      <main className="main">
-
+      <main className="main-content">
         {/* TOP BAR */}
         <header className="topbar">
-
           <div className="search-box">
             <span>⌕</span>
-
             <input
               placeholder="Search tenants, users, settings, audit logs..."
             />
-
-            <kbd>⌘K</kbd>
+            <span className="shortcut">⌘K</span>
           </div>
 
-          <div className="top-right">
-
-            <button className="top-icon">♧</button>
-            <button className="top-icon">⚙</button>
+          <div className="topbar-right">
+            <span className="top-icon">♧</span>
+            <span className="top-icon">◉</span>
 
             <div className="top-user">
-              <div className="top-avatar">R</div>
+              <div className="user-avatar">R</div>
 
               <div>
-                <strong>Renu Kapoor</strong>
-                <small>Super Admin</small>
+                <div className="top-user-name">Renu Kapoor</div>
+                <div className="top-user-role">Super Admin</div>
               </div>
 
               <span>⌄</span>
             </div>
-
           </div>
         </header>
 
-        {/* CONTENT */}
-        <div className="page">
+        {/* PAGE */}
+        <div className="page-container">
+          <div className="page-heading">
+            <div>
+              <h1>Platform Branding</h1>
+              <p>
+                Configure platform identity, visual assets and security
+                settings.
+              </p>
+            </div>
+          </div>
 
-          {/* LEFT */}
-          <div className="left-column">
+          <div className="content-grid">
+            {/* LEFT COLUMN */}
+            <div className="left-column">
+              {/* PLATFORM IDENTITY */}
+              <section className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h2>Platform Identity</h2>
+                    <p>Basic Info</p>
+                  </div>
+                </div>
 
-            {/* PLATFORM IDENTITY */}
-            <section className="panel">
-
-              <div className="panel-title">
-                <h2>Platform Identity</h2>
-                <span>Basic Info</span>
-              </div>
-
-              <div className="identity-grid">
-
-                <div className="input-group full">
-                  <label>Platform Name</label>
+                <div className="form-group full">
+                  <label>
+                    Platform Name <span className="required">*</span>
+                  </label>
 
                   <input
+                    className={!platformName ? "input-error" : ""}
                     value={platformName}
-                    onChange={(e) =>
-                      setPlatformName(e.target.value)
-                    }
-                    className={!platformName ? "error-input" : ""}
+                    onChange={(e) => setPlatformName(e.target.value)}
+                    placeholder="Enter platform name"
                   />
 
                   {!platformName && (
@@ -270,137 +356,125 @@ function App() {
                   )}
                 </div>
 
-                <div className="input-group">
-                  <label>Company Name</label>
+                <div className="two-column-fields">
+                  <div className="form-group">
+                    <label>Company Name</label>
 
-                  <input
-                    value={companyName}
-                    onChange={(e) =>
-                      setCompanyName(e.target.value)
-                    }
-                  />
-                </div>
-
-                <div className="input-group">
-                  <label>Tagline</label>
-
-                  <input
-                    value={tagline}
-                    onChange={(e) =>
-                      setTagline(e.target.value)
-                    }
-                    className={
-                      tagline.length > 120 ? "error-input" : ""
-                    }
-                  />
-
-                  {tagline.length > 120 && (
-                    <small className="error-text">
-                      Tagline must be fewer than 120 characters
-                    </small>
-                  )}
-                </div>
-
-              </div>
-            </section>
-
-            {/* VISUAL ASSETS */}
-            <section className="panel">
-
-              <div className="panel-title">
-                <h2>Visual Assets</h2>
-              </div>
-
-              <div className="visual-grid">
-
-                <div>
-
-                  <div className="asset-heading">
-                    <strong>▧ Company Logo</strong>
-                    <span>PNG, SVG up to 5MB.</span>
+                    <input
+                      value={companyName}
+                      onChange={(e) =>
+                        setCompanyName(e.target.value)
+                      }
+                    />
                   </div>
 
-                  <div className="logo-upload">
+                  <div className="form-group">
+                    <label>Tagline</label>
 
+                    <input
+                      value={tagline}
+                      onChange={(e) => setTagline(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                {/* VISUAL ASSETS */}
+                <div className="sub-heading">
+                  <h2>Visual Assets</h2>
+                </div>
+
+                <div className="asset-item">
+                  <div className="asset-title">Company Logo</div>
+
+                  <div className="asset-box">
                     {logoImage ? (
-                      <img src={logoImage} alt="Company Logo" />
+                      <img
+                        src={logoImage}
+                        alt="Company Logo"
+                        className="asset-preview-image"
+                      />
                     ) : (
-                      <div className="demo-logo">
-                        <span>✦</span>
-
-                        <div>
-                          <strong>SYNERGY</strong>
-                          <small>ENTERPRISE SOFTWARE</small>
-                        </div>
+                      <div className="default-company-logo">
+                        <span>✣</span>
+                        <b>SYNERGY</b>
+                        <small>ENTERPRISE SOFTWARE</small>
                       </div>
                     )}
 
-                    <label className="upload-outline">
-                      Upload Logo
-
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={(e) =>
-                          uploadImage(e, setLogoImage)
-                        }
-                      />
-                    </label>
-
+                    <div className="asset-actions">
+                      <label className="upload-outline">
+                        Upload Logo
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/svg+xml"
+                          hidden
+                          onChange={(e) =>
+                            uploadImage(e, setLogoImage)
+                          }
+                        />
+                      </label>
+                    </div>
                   </div>
 
+                  <small className="help-text">
+                    PNG, SVG up to 5MB
+                  </small>
                 </div>
 
-                <div className="right-assets">
-
-                  <div className="asset-heading">
-                    <strong>Favicon</strong>
-                  </div>
+                {/* FAVICON */}
+                <div className="asset-item">
+                  <div className="asset-title">Favicon</div>
 
                   <div className="favicon-row">
-
-                    <div className="favicon-preview">
+                    <div className="favicon-preview-box">
                       {faviconImage ? (
-                        <img src={faviconImage} alt="Favicon" />
+                        <img
+                          src={faviconImage}
+                          alt="Favicon"
+                          className="favicon-image"
+                        />
                       ) : (
-                        "S"
+                        <div className="default-favicon-large">
+                          S
+                        </div>
                       )}
                     </div>
 
-                    <label className="small-upload">
+                    <button
+                      className="upload-outline"
+                      onClick={() => setShowFaviconModal(true)}
+                    >
                       Upload Favicon
+                    </button>
+                  </div>
 
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        onChange={(e) =>
-                          uploadImage(e, setFaviconImage)
-                        }
+                  <small className="help-text">
+                    ICO, PNG format supported – 32x32 or 16x16 pixels
+                    recommended
+                  </small>
+                </div>
+
+                {/* EMAIL HEADER */}
+                <div className="asset-item">
+                  <div className="asset-title">
+                    Email Header Logo
+                  </div>
+
+                  <div className="email-logo-row">
+                    {emailLogo && (
+                      <img
+                        src={emailLogo}
+                        alt="Email Logo"
+                        className="email-logo-preview"
                       />
-                    </label>
+                    )}
 
-                  </div>
-
-                  <div className="asset-heading email-heading">
-                    <strong>Email Header Logo</strong>
-                  </div>
-
-                  <div className="email-row">
-
-                    <div className="email-upload">
-                      {emailLogo
-                        ? "Image selected"
-                        : "No file chosen"}
-                    </div>
-
-                    <label className="small-upload">
-                      Upload File
+                    <label className="upload-outline">
+                      {emailLogo ? "Change File" : "Upload File"}
 
                       <input
                         type="file"
-                        accept="image/*"
+                        accept="image/png,image/jpeg,image/svg+xml"
                         hidden
                         onChange={(e) =>
                           uploadImage(e, setEmailLogo)
@@ -408,26 +482,35 @@ function App() {
                       />
                     </label>
 
+                    {!emailLogo && (
+                      <span className="no-file">
+                        No file chosen
+                      </span>
+                    )}
                   </div>
-
                 </div>
 
-                <div className="input-group">
+                {/* FOOTER TEXT */}
+                <div className="form-group">
                   <label>Footer Text</label>
 
-                  <input
-                    value={footerText}
-                    onChange={(e) =>
-                      setFooterText(e.target.value)
-                    }
-                  />
+                  <div className="textarea-wrapper">
+                    <textarea
+                      value={footerText}
+                      maxLength={200}
+                      onChange={(e) =>
+                        setFooterText(e.target.value)
+                      }
+                    />
 
-                  <span className="character-count">
-                    {footerText.length}/200
-                  </span>
+                    <span>
+                      {footerText.length}/200
+                    </span>
+                  </div>
                 </div>
 
-                <div className="input-group">
+                {/* COPYRIGHT */}
+                <div className="form-group">
                   <label>Copyright Text</label>
 
                   <input
@@ -437,303 +520,363 @@ function App() {
                     }
                   />
                 </div>
+              </section>
 
-              </div>
-            </section>
-
-            {/* THEME */}
-            <section className="panel theme-panel">
-
-              <div className="panel-title">
-                <h2>Theme Configuration</h2>
-              </div>
-
-              <div className="theme-row">
-
-                <strong>Theme</strong>
-
-                <div className="theme-buttons">
-
-                  <button
-                    className={
-                      theme === "light" ? "selected" : ""
-                    }
-                    onClick={() => setTheme("light")}
-                  >
-                    ☼ Light mode
-                  </button>
-
-                  <button
-                    className={
-                      theme === "dark" ? "selected" : ""
-                    }
-                    onClick={() => setTheme("dark")}
-                  >
-                    ☾ Dark mode
-                  </button>
-
+              {/* THEME CONFIGURATION */}
+              <section className="panel">
+                <div className="panel-header">
+                  <div>
+                    <h2>Theme Configuration</h2>
+                  </div>
                 </div>
 
-              </div>
+                <div className="theme-row">
+                  <label>Theme</label>
 
-              <div className="color-grid">
+                  <div className="theme-buttons">
+                    <button
+                      className={
+                        theme === "light"
+                          ? "theme-btn selected"
+                          : "theme-btn"
+                      }
+                      onClick={() => setTheme("light")}
+                    >
+                      ☀ Light mode
+                    </button>
 
-                <ColorInput
-                  title="Primary Color"
-                  color={primaryColor}
-                  setColor={setPrimaryColor}
-                />
+                    <button
+                      className={
+                        theme === "dark"
+                          ? "theme-btn selected"
+                          : "theme-btn"
+                      }
+                      onClick={() => setTheme("dark")}
+                    >
+                      ◐ Dark mode
+                    </button>
+                  </div>
+                </div>
 
-                <ColorInput
-                  title="Secondary Color"
-                  color={secondaryColor}
-                  setColor={setSecondaryColor}
-                />
+                <div className="color-grid">
+                  <ColorInput
+                    label="Primary Color"
+                    value={primaryColor}
+                    onChange={setPrimaryColor}
+                  />
 
-                <ColorInput
-                  title="Accent Color"
-                  color={accentColor}
-                  setColor={setAccentColor}
-                />
+                  <ColorInput
+                    label="Secondary Color"
+                    value={secondaryColor}
+                    onChange={setSecondaryColor}
+                  />
 
-              </div>
+                  <ColorInput
+                    label="Accent Color"
+                    value={accentColor}
+                    onChange={setAccentColor}
+                  />
+                </div>
+              </section>
+            </div>
 
-            </section>
+            {/* RIGHT COLUMN */}
+            <div className="right-column">
+              {/* LOGIN BACKGROUND */}
+              <section className="panel">
+                <div className="panel-title-row">
+                  <div>
+                    <h2>Login Background</h2>
+                  </div>
 
-          </div>
+                  <label className="change-image">
+                    Change Image
+                    <input
+                      type="file"
+                      hidden
+                      accept="image/*"
+                      onChange={(e) =>
+                        uploadImage(e, setBackgroundImage)
+                      }
+                    />
+                  </label>
+                </div>
 
-          {/* RIGHT */}
-          <div className="right-column">
+                <div
+                  className="login-preview"
+                  style={
+                    backgroundImage
+                      ? {
+                          backgroundImage: `url(${backgroundImage})`,
+                        }
+                      : {}
+                  }
+                >
+                  <div className="login-card">
+                    <div className="login-input"></div>
+                    <div className="login-input"></div>
+                    <div className="login-button"></div>
+                  </div>
+                </div>
 
-            {/* LOGIN BACKGROUND */}
-            <section className="panel login-panel">
+                <div className="form-group">
+                  <label>Welcome Message</label>
 
-              <div className="panel-title">
-
-                <h2>Login Background</h2>
-
-                <label className="change-image">
-                  Change Image
-
-                  <input
-                    type="file"
-                    accept="image/*"
-                    hidden
+                  <textarea
+                    className="welcome-textarea"
+                    value={welcomeMessage}
                     onChange={(e) =>
-                      uploadImage(e, setBackgroundImage)
+                      setWelcomeMessage(e.target.value)
                     }
                   />
-                </label>
 
+                  <div className="character-count">
+                    {welcomeMessage.length}/500
+                  </div>
+                </div>
+              </section>
+
+              {/* SECURITY */}
+              <section className="panel">
+                <div className="panel-title-row">
+                  <div>
+                    <h2>Security & Rules</h2>
+                  </div>
+                </div>
+
+                <div className="rules-section">
+                  <h3>VALIDATION RULES</h3>
+
+                  <div className="rule-item">
+                    <span>○</span>
+                    <span>
+                      Minimum 8 characters
+                    </span>
+                  </div>
+
+                  <div className="rule-item">
+                    <span>○</span>
+                    <span>
+                      Must include uppercase, lowercase,
+                      number
+                    </span>
+                  </div>
+
+                  <div className="rule-item">
+                    <span>○</span>
+                    <span>
+                      Cannot reuse last five passwords
+                    </span>
+                  </div>
+                </div>
+
+                <div className="security-section">
+                  <h3>SECURITY HANDLING</h3>
+
+                  <div className="security-row">
+                    <div>
+                      <strong>Strong Password Policy</strong>
+                      <p>
+                        Enforce complex password requirements
+                      </p>
+                    </div>
+
+                    <button
+                      className={
+                        strongPassword
+                          ? "toggle active"
+                          : "toggle"
+                      }
+                      onClick={() =>
+                        setStrongPassword(!strongPassword)
+                      }
+                    >
+                      <span></span>
+                    </button>
+                  </div>
+
+                  <div className="security-row">
+                    <div>
+                      <strong>
+                        Two Factor Authentication
+                      </strong>
+                      <p>
+                        Add an extra layer of account security
+                      </p>
+                    </div>
+
+                    <button
+                      className={
+                        twoFactor
+                          ? "toggle active"
+                          : "toggle"
+                      }
+                      onClick={() =>
+                        setTwoFactor(!twoFactor)
+                      }
+                    >
+                      <span></span>
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      {/* BOTTOM ACTION BAR */}
+      <div className="action-bar">
+        <div className="action-buttons">
+          <button
+            className="cancel-btn"
+            onClick={cancelChanges}
+          >
+            Cancel
+          </button>
+
+          <button
+            className="preview-btn"
+            onClick={previewChanges}
+          >
+            ◉ Preview
+          </button>
+
+          <button
+            className="save-btn"
+            onClick={saveChanges}
+          >
+            ▣ Save Changes
+          </button>
+        </div>
+      </div>
+
+      {/* FAVICON MODAL */}
+      {showFaviconModal && (
+        <div className="modal-overlay">
+          <div className="favicon-modal">
+            <div className="modal-header">
+              <h2>Upload Favicon</h2>
+
+              <button
+                className="modal-close"
+                onClick={closeFaviconModal}
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="modal-divider"></div>
+
+            <div
+              className="favicon-dropzone"
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => {
+                e.preventDefault();
+                handleFaviconFile(
+                  e.dataTransfer.files[0]
+                );
+              }}
+              onClick={() =>
+                document
+                  .getElementById("faviconInput")
+                  .click()
+              }
+            >
+              <div className="upload-circle">
+                ⇧
               </div>
 
-              <div className="login-preview">
+              <h3>
+                Drag & drop your favicon here
+              </h3>
 
-                {backgroundImage && (
+              <p>or click to browse files</p>
+
+              <span>
+                ICO, PNG format supported – 32x32 or
+                16x16 pixels recommended
+              </span>
+
+              <input
+                id="faviconInput"
+                type="file"
+                accept=".png,.ico,image/png,image/x-icon"
+                hidden
+                onChange={(e) =>
+                  handleFaviconFile(
+                    e.target.files[0]
+                  )
+                }
+              />
+            </div>
+
+            <div className="browser-preview">
+              <h4>BROWSER TAB PREVIEW</h4>
+
+              <div className="browser-tab">
+                <div className="browser-dots">
+                  <span></span>
+                  <span></span>
+                  <span></span>
+                </div>
+
+                {faviconPreview ? (
                   <img
-                    src={backgroundImage}
-                    alt="Background"
-                    className="background-img"
+                    src={faviconPreview}
+                    alt="Favicon"
+                    className="favicon-small"
                   />
+                ) : (
+                  <div className="default-tab-favicon">
+                    S
+                  </div>
                 )}
 
-                <div className="login-card">
-
-                  <div className="fake-input"></div>
-                  <div className="fake-input wide"></div>
-                  <div className="fake-input wide"></div>
-                  <div className="fake-button"></div>
-
-                </div>
-
+                <span>Stackly Portal</span>
               </div>
+            </div>
 
-              <div className="welcome-section">
+            <div className="modal-footer">
+              <button
+                className="modal-cancel"
+                onClick={closeFaviconModal}
+              >
+                Cancel
+              </button>
 
-                <label>Welcome Message</label>
-
-                <textarea
-                  value={welcomeMessage}
-                  onChange={(e) =>
-                    setWelcomeMessage(e.target.value)
-                  }
-                />
-
-                <span>
-                  {welcomeMessage.length}/250
-                </span>
-
-              </div>
-
-            </section>
-
-            {/* SECURITY */}
-            <section className="panel security-panel">
-
-              <div className="security-title">
-                <h2>♧ Security & Rules</h2>
-              </div>
-
-              <h4>VALIDATION RULES</h4>
-
-              <div className="rule">
-                <span>✓</span>
-
-                <div>
-                  Images: PNG, JPG, SVG max 5MB.
-                  <br />
-                  Background max 10MB.
-                </div>
-              </div>
-
-              <div className="rule">
-                <span>✓</span>
-
-                <div>
-                  Text fields max 100 chars; Messages
-                  <br />
-                  max 250 chars.
-                </div>
-              </div>
-
-              <div className="rule">
-                <span>✓</span>
-
-                <div>
-                  Colors must be valid hex values.
-                </div>
-              </div>
-
-              <hr />
-
-              <h4>SECURITY HANDLING</h4>
-
-              <div className="rule">
-                <span>♧</span>
-                <div>Super Admin (RBAC) access only.</div>
-              </div>
-
-              <div className="rule">
-                <span>◷</span>
-                <div>All changes logged to Audit Trail.</div>
-              </div>
-
-              <div className="security-toggles">
-
-                <div className="toggle-item">
-
-                  <div>
-                    <strong>Strong Password</strong>
-                    <small>Require secure passwords</small>
-                  </div>
-
-                  <label className="switch">
-
-                    <input
-                      type="checkbox"
-                      checked={strongPassword}
-                      onChange={(e) =>
-                        setStrongPassword(e.target.checked)
-                      }
-                    />
-
-                    <span></span>
-
-                  </label>
-
-                </div>
-
-                <div className="toggle-item">
-
-                  <div>
-                    <strong>Two Factor Authentication</strong>
-                    <small>Extra login verification</small>
-                  </div>
-
-                  <label className="switch">
-
-                    <input
-                      type="checkbox"
-                      checked={twoFactor}
-                      onChange={(e) =>
-                        setTwoFactor(e.target.checked)
-                      }
-                    />
-
-                    <span></span>
-
-                  </label>
-
-                </div>
-
-              </div>
-
-            </section>
-
+              <button
+                className="modal-upload"
+                onClick={handleFaviconUpload}
+              >
+                Upload
+              </button>
+            </div>
           </div>
-
         </div>
-
-        {/* BOTTOM ACTION BAR */}
-        <footer className="action-bar">
-
-          <div className="action-buttons">
-
-            <button
-              className="cancel-btn"
-              onClick={cancelChanges}
-            >
-              Cancel
-            </button>
-
-            <button
-              className="preview-btn"
-              onClick={previewChanges}
-            >
-              Preview
-            </button>
-
-            <button
-              className="save-btn"
-              onClick={saveChanges}
-            >
-              ▣ Save Changes
-            </button>
-
-          </div>
-
-        </footer>
-
-      </main>
+      )}
     </div>
   );
 }
 
-function ColorInput({ title, color, setColor }) {
+function ColorInput({ label, value, onChange }) {
   return (
     <div className="color-input-group">
+      <label>{label}</label>
 
-      <label>{title}</label>
-
-      <div className="color-control">
-
+      <div className="color-input-wrapper">
         <input
           type="color"
-          value={color}
-          onChange={(e) =>
-            setColor(e.target.value)
-          }
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
         />
 
         <input
-          value={color}
-          onChange={(e) =>
-            setColor(e.target.value)
-          }
+          type="text"
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
         />
-
       </div>
-
     </div>
   );
 }
