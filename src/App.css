@@ -212,18 +212,25 @@ button {
   gap: 8px;
   padding: 0 10px;
   color: #9aa0a8;
+  background: white;
 }
+
+/* SEARCH INPUT */
 
 .search-box input {
   flex: 1;
   border: none;
   outline: none;
+  background: transparent !important;
   font-size: 11px;
-  color: #444;
+  color: #7b8495 !important;
+  -webkit-text-fill-color: #7b8495;
 }
 
 .search-box input::placeholder {
-  color: #a2a6ad;
+  color: #9aa2af !important;
+  opacity: 1;
+  -webkit-text-fill-color: #9aa2af;
 }
 
 .shortcut {
@@ -232,6 +239,7 @@ button {
   border-radius: 4px;
   padding: 2px 5px;
   color: #777;
+  background: white;
 }
 
 .topbar-right {
